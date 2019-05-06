@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	<!-- 启动配置扫描包 -->
+	<context:component-scan base-package="com.pxg.*"></context:component-scan>
+	<!-- 引入数据库数据源 -->
+	<context:property-placeholder location="classpath:db.properties" />
+	<!-- 2.配置基本属性 username/password/ 连接池 -->
+	<bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.driver}"></property>  
+		<property name="url" value="${jdbc.url}"></property>
+		<property name="username" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		<!-- 配置初始化大小，最小，最大 -->
+		<property name="initialSize" value="1"></property>
+		<property name="minIdle" value="10"></property>
+		<property name="maxActive" value="30"></property> 
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000"></property> 
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲时间，单位毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000"></property>
+		<property name="testWhileIdle" value="false"></property>
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小  -->
+		<property name="poolPreparedStatements" value="false"/>
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="20"/>
+		<property name="defaultAutoCommit" value="true" />
+		<property name="validationQueryTimeout" value="60000"/>
+		<!-- 数据库连接有效性 -->
+		<property name="validationQuery" value="select 1 from dual" />
+	</bean>
+	 <!-- 配置dao所在的包，dao的创建交给Spring -->
+	 <jpa:repositories base-package="com.pxg.dao"></jpa:repositories>
+	 <!-- Entity管理工厂，指定数据源 -->
+	 <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+	 	<property name="dataSource" ref="druidDataSource"></property>
+	 </bean>
+	 <!-- 事务管理，指定entity管理工厂 -->
+	 <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+	 <property name="entityManagerFactory" ref="entityManagerFactory"></property>
+	 </bean>
+	<!-- 注释驱动，让注释生效，指定事务管理器 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
